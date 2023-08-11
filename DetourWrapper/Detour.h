@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <fstream>
-//#include <glm/vec3.hpp>
+#include <glm/vec3.hpp>
 #include <memory>
 #include <vector>
 
@@ -22,7 +22,7 @@ namespace eqoa
         detour();
         ~detour();
         uint32_t load(const std::string& filePath);
-        //uint32_t find_path(const glm::vec3&, const glm::vec3&);
+        uint32_t find_path(const glm::vec3&, const glm::vec3&);
     private:
         void unload();
         std::unique_ptr<dtNavMesh> m_dtNavMesh;

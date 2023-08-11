@@ -135,12 +135,19 @@ namespace eqoa
         return 0;
      }
 
+    uint32_t detour::find_path(const glm::vec3&, const glm::vec3&)
+    {
+        return 0;
+    }
+
     // MeshLoader FreeMesh function
     void detour::unload()
     {
         //Both mesh and query will be freed when detour instance is destroyed
         //do we need anything here?
     }
+
+
 }
 
 

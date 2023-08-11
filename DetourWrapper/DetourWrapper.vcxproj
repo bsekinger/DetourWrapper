@@ -76,6 +76,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ManagedAssembly>false</ManagedAssembly>
+    <IncludePath>$(VCPKG_ROOT)\installed\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VCPKG_ROOT)\installed\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ManagedAssembly>true</ManagedAssembly>
