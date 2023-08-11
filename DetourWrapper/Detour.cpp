@@ -1,13 +1,9 @@
-#include "DetourWrapper.h"
+#include "Detour.h"
 #include "DetourNavMesh.h"
 #include "DetourAlloc.h"
-#include <string.h>
-#include <string>
-#include <stdio.h>
-#include <vcclr.h>
 #include <iostream>
 
-namespace DetourWrapper
+namespace eqoa
 {
     static const int NAVMESHSET_MAGIC = 'M' << 24 | 'S' << 16 | 'E' << 8 | 'T'; //'MSET';
     static const int NAVMESHSET_VERSION = 1;
@@ -110,37 +106,41 @@ namespace DetourWrapper
         return mesh;
     }
 
-     // MeshLoader LoadMesh function
-    void* MeshLoader::LoadMesh(System::String^ filePath)
+    detour::detour()
     {
-        const char* nativeFilePath = (const char*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(filePath);
+        m_dtNavMesh = std::make_unique<dtNavMesh>();
+        m_dtNavMeshQuery = std::make_unique<dtNavMeshQuery>();
+    }
 
-        // Load the mesh file and create the dtNavMesh
-        dtNavMesh* navMesh = LoadMeshFile(nativeFilePath);
-        
-        void* meshPtr = nullptr;
+    detour::~detour()
+    {
+        // m_dtNavMesh and m_dtNavMeshQuery will be automatically cleaned up
+        // when the detour object is destructed. Do we need this?
+    }
 
-        if (navMesh)
+     // MeshLoader LoadMesh function
+    uint32_t detour::load(const std::string& filePath)
+    {
+        std::unique_ptr<dtNavMesh> loadedMesh(LoadMeshFile(filePath));
+
+        if (loadedMesh)
         {
-            meshPtr = navMesh;
+            m_dtNavMesh = std::move(loadedMesh); // Transfer ownership            
             std::cout << "LoadMesh complete!" << std::endl;
-            std::cout << "Mesh pointer: " << meshPtr << std::endl;
+            std::cout << "Mesh pointer: " << m_dtNavMesh << std::endl;
+
+            return 1; // success
         }
 
-        return meshPtr;
+        return 0;
      }
 
     // MeshLoader FreeMesh function
-    void MeshLoader::FreeMesh(void* navMeshVoidPtr)
+    void detour::unload()
     {
-        dtNavMesh* navMeshPointer = nullptr;
-        navMeshPointer = reinterpret_cast<dtNavMesh*>(navMeshVoidPtr);
-
-        if (navMeshPointer)   
-        {       
-            dtFreeNavMesh(navMeshPointer);
-            navMeshPointer = nullptr;
-            std::cout << "navMesh freed!" << std::endl;
-        }
+        //Both mesh and query will be freed when detour instance is destroyed
+        //do we need anything here?
     }
 }
+
+

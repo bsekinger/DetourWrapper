@@ -18,7 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DetourWrapper.h">
+    <ClInclude Include="Detour.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Detour\Include\DetourAlloc.h">
@@ -48,9 +48,12 @@
     <ClInclude Include="Detour\Include\DetourStatus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DllExport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DetourWrapper.cpp">
+    <ClCompile Include="Detour.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Detour\Source\DetourAlloc.cpp">
@@ -72,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Detour\Source\DetourNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DllExport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

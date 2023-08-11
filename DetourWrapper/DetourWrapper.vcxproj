@@ -75,7 +75,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ManagedAssembly>true</ManagedAssembly>
+    <ManagedAssembly>false</ManagedAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ManagedAssembly>true</ManagedAssembly>
@@ -87,8 +87,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Detour/Include
 </AdditionalIncludeDirectories>
       <AdditionalOptions>/Gd %(AdditionalOptions)</AdditionalOptions>
-      <CompileAsManaged>true</CompileAsManaged>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged>false</CompileAsManaged>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
@@ -129,7 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DetourWrapper.h" />
+    <ClInclude Include="Detour.h" />
     <ClInclude Include="Detour\Include\DetourAlloc.h" />
     <ClInclude Include="Detour\Include\DetourAssert.h" />
     <ClInclude Include="Detour\Include\DetourCommon.h" />
@@ -139,9 +139,10 @@
     <ClInclude Include="Detour\Include\DetourNavMeshQuery.h" />
     <ClInclude Include="Detour\Include\DetourNode.h" />
     <ClInclude Include="Detour\Include\DetourStatus.h" />
+    <ClInclude Include="DllExport.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DetourWrapper.cpp" />
+    <ClCompile Include="Detour.cpp" />
     <ClCompile Include="Detour\Source\DetourAlloc.cpp" />
     <ClCompile Include="Detour\Source\DetourAssert.cpp" />
     <ClCompile Include="Detour\Source\DetourCommon.cpp" />
@@ -149,6 +150,7 @@
     <ClCompile Include="Detour\Source\DetourNavMeshBuilder.cpp" />
     <ClCompile Include="Detour\Source\DetourNavMeshQuery.cpp" />
     <ClCompile Include="Detour\Source\DetourNode.cpp" />
+    <ClCompile Include="DllExport.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
