@@ -14,6 +14,8 @@
 #include "DetourNavMesh.h"
 #include "DetourNavMeshQuery.h"
 
+#define MAX_POLYS 256
+
 namespace eqoa
 {
     class detour
@@ -22,7 +24,7 @@ namespace eqoa
         detour();
         ~detour();
         uint32_t load(const std::string& filePath);
-        uint32_t find_path(const glm::vec3&, const glm::vec3&);
+        uint32_t find_path(const glm::vec3& startPoint, const glm::vec3& endPoint, float* strPath);
     private:
         void unload();
         std::unique_ptr<dtNavMesh> m_dtNavMesh;

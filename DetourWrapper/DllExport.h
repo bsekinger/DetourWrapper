@@ -15,9 +15,9 @@
 extern "C"
 {
     DETOUR_API void* allocDetour();
-    DETOUR_API void freeDetour(void*);
-    DETOUR_API uint32_t load(void*, const char*);
-    DETOUR_API uint32_t find_path(void*, void*, void*);
+    DETOUR_API void freeDetour(void* ptr);
+    DETOUR_API uint32_t load(void* ptr, const char* filename);
+    DETOUR_API uint32_t find_path(void* ptr, void* start, void* end, float* strPath);
 }
 #endif
 

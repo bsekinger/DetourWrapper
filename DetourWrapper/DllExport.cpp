@@ -20,8 +20,8 @@ DETOUR_API uint32_t load(void* ptr, const char* filename)
     return detour->load(std::string{ filename });
 }
 
-DETOUR_API uint32_t find_path(void* ptr, void* start, void* end)
+DETOUR_API uint32_t find_path(void* ptr, void* start, void* end, float* strPath)
 {
     eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
-    return detour->find_path(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(end));
+    return detour->find_path(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(end), strPath);
 }

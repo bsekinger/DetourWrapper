@@ -1,11 +1,15 @@
 #include "Detour.h"
 #include "DetourNavMesh.h"
 #include "DetourAlloc.h"
+#include "DetourNavMeshQuery.h"
+#include "DetourStatus.h"
+#include "DetourCommon.h"
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace eqoa
 {
-    static const int NAVMESHSET_MAGIC = 'M' << 24 | 'S' << 16 | 'E' << 8 | 'T'; //'MSET';
+    static const int NAVMESHSET_MAGIC = 'M' << 24 | 'S' << 16 | 'E' << 8 | 'T';
     static const int NAVMESHSET_VERSION = 1;
 
     struct NavMeshSetHeader
@@ -24,7 +28,6 @@ namespace eqoa
 
     dtNavMesh* LoadMeshFile(const std::string& filePath)
     {
-        // Open the binary file for reading
         FILE* file = fopen(filePath.c_str(), "rb");
         if (!file)
         {
@@ -32,7 +35,6 @@ namespace eqoa
             return nullptr;
         }
 
-        // Read header.
         NavMeshSetHeader header;
         size_t readLen = fread(&header, sizeof(NavMeshSetHeader), 1, file);
         if (readLen != 1)
@@ -68,7 +70,6 @@ namespace eqoa
             return nullptr;
         }
 
-        // Read and load tiles.
         for (int i = 0; i < header.numTiles; ++i)
         {
             NavMeshTileHeader tileHeader;
@@ -118,36 +119,91 @@ namespace eqoa
         // when the detour object is destructed. Do we need this?
     }
 
-     // MeshLoader LoadMesh function
     uint32_t detour::load(const std::string& filePath)
     {
         std::unique_ptr<dtNavMesh> loadedMesh(LoadMeshFile(filePath));
 
         if (loadedMesh)
         {
-            m_dtNavMesh = std::move(loadedMesh); // Transfer ownership            
-            std::cout << "LoadMesh complete!" << std::endl;
-            std::cout << "Mesh pointer: " << m_dtNavMesh << std::endl;
-
-            return 1; // success
+            m_dtNavMesh = std::move(loadedMesh);
+            return 1;
         }
 
         return 0;
      }
 
-    uint32_t detour::find_path(const glm::vec3&, const glm::vec3&)
+    uint32_t detour::find_path(const glm::vec3& startPoint, const glm::vec3& endPoint, float* strPath)
     {
-        return 0;
+         m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
+
+        const float* startptr = glm::value_ptr(startPoint);
+        const float* endptr = glm::value_ptr(endPoint);
+        
+        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const float* halfExtents = glm::value_ptr(extents);
+
+        dtPolyRef startRef, endRef;
+        
+        float startPt[3];
+        float endPt[3];
+        
+        dtQueryFilter filter;
+        filter.setIncludeFlags(0xffff);
+        filter.setExcludeFlags(0);
+
+        dtPolyRef path[MAX_POLYS];
+        dtStatus status = 0;
+        int pathCount = 0;
+
+        float straightPath[MAX_POLYS * 3]{};
+        unsigned char strPathFlags[MAX_POLYS];
+        dtPolyRef strPathPolys[MAX_POLYS];
+
+        int strPathCount = 0;
+
+        status = m_dtNavMeshQuery->findNearestPoly(startptr, halfExtents, &filter, &startRef, startPt);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid start poly! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        status = m_dtNavMeshQuery->findNearestPoly(endptr, halfExtents, &filter, &endRef, endPt);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid end poly! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        status = m_dtNavMeshQuery->findPath(startRef, endRef, startPt, endPt, &filter, path, &pathCount, MAX_POLYS);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid path! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        if (pathCount > 0)
+        {
+            status = m_dtNavMeshQuery->findStraightPath(startPt, endPt, path, pathCount, straightPath, strPathFlags, strPathPolys, &strPathCount, MAX_POLYS);
+            if (dtStatusFailed(status))
+            {
+                std::cout << "Could not find valid straight path! " << "Status: " << status << std::endl;
+                return 0;
+            }
+        }
+
+        for (int i = 0; i < MAX_POLYS * 3; ++i)
+        {
+            strPath[i] = straightPath[i];
+        }
+        return strPathCount;
     }
 
-    // MeshLoader FreeMesh function
-    void detour::unload()
+     void detour::unload()
     {
         //Both mesh and query will be freed when detour instance is destroyed
         //do we need anything here?
     }
-
-
 }
 
 
