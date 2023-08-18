@@ -231,26 +231,31 @@ namespace eqoa
 
         if (distance > *range)
         {
-            std::cout << "target is out of range. Distance: " << distance << " range: " << *range << std::endl;
+            //std::cout << "target is out of range. Distance: " << distance << " range: " << *range << std::endl;
             return 1;
         }
 
         status = m_dtNavMeshQuery->findNearestPoly(startptr, halfExtents, &filter, &startRef, startPt);
         if (dtStatusFailed(status))
         {
-            std::cout << "Could not find valid start poly! " << "Status: " << status << std::endl;
+            //std::cout << "Could not find valid start poly! " << "Status: " << status << std::endl;
             return 0;
         }
 
         status = m_dtNavMeshQuery->raycast(startRef, startPt, targetPt, &filter, &t, &hitNormal, &path, &pathCount, maxPath);
         if (dtStatusFailed(status))
         {
-            std::cout << "No light of Sight!" << std::endl;
-            return 2;
+            return 0;
         }
-        
-        std::cout << "Line of Sight success!" << std::endl;
-        return 5;
+
+        if (t >= 3e+38)
+        {
+            //std::cout << "LoS Success!" << std::endl;
+            return 5;
+        }
+
+        //std::cout << "LoS Failed!" << std::endl;
+        return 2;
     }
 
      void detour::unload()
