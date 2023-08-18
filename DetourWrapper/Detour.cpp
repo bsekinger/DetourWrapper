@@ -199,6 +199,60 @@ namespace eqoa
         return strPathCount;
     }
 
+    uint32_t detour::check_los(const glm::vec3& start, const glm::vec3& target, float* range)
+    {
+        m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
+        float distance = glm::distance(start, target);
+        const float* startptr = glm::value_ptr(start);
+        const float* targetptr = glm::value_ptr(target);
+
+        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const float* halfExtents = glm::value_ptr(extents);
+
+        float startPt[3]{ start.x, start.y, start.z };
+        float targetPt[3]{ target.x, target.y, target.z };
+
+        dtStatus status = 0;
+        dtPolyRef startRef;
+
+        dtQueryFilter filter;
+        filter.setIncludeFlags(0xffff);
+        filter.setExcludeFlags(0);
+
+        dtRaycastHit hit;
+        dtPolyRef prevRef = 0;
+        const unsigned int options = 1;
+
+        float t;
+        float hitNormal;
+        dtPolyRef path;
+        int pathCount;
+        const int maxPath = 256;
+
+        if (distance > *range)
+        {
+            std::cout << "target is out of range. Distance: " << distance << " range: " << *range << std::endl;
+            return 1;
+        }
+
+        status = m_dtNavMeshQuery->findNearestPoly(startptr, halfExtents, &filter, &startRef, startPt);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid start poly! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        status = m_dtNavMeshQuery->raycast(startRef, startPt, targetPt, &filter, &t, &hitNormal, &path, &pathCount, maxPath);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "No light of Sight!" << std::endl;
+            return 2;
+        }
+        
+        std::cout << "Line of Sight success!" << std::endl;
+        return 5;
+    }
+
      void detour::unload()
     {
         //Both mesh and query will be freed when detour instance is destroyed

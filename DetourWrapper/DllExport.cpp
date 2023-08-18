@@ -25,3 +25,9 @@ DETOUR_API uint32_t find_path(void* ptr, void* start, void* end, float* strPath)
     eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
     return detour->find_path(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(end), strPath);
 }
+
+DETOUR_API uint32_t check_los(void* ptr, void* start, void* target, float* range)
+{
+    eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
+    return detour->check_los(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(target), range);
+}
