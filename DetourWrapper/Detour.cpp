@@ -6,6 +6,8 @@
 #include "DetourCommon.h"
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
+#include <float.h>
+
 
 namespace eqoa
 {
@@ -25,6 +27,13 @@ namespace eqoa
         dtTileRef tileRef;
         int dataSize;
     };
+
+    // Returns a random number [0..1]
+    static float frand()
+    {
+        //	return ((float)(rand() & 0xffff)/(float)0xffff);
+        return (float)rand() / (float)RAND_MAX;
+    }
 
     dtNavMesh* LoadMeshFile(const std::string& filePath)
     {
@@ -131,6 +140,72 @@ namespace eqoa
 
         return 0;
      }
+
+    uint32_t detour::random_roam(const glm::vec3& startPoint, float* strPath)
+    {
+        m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
+
+        const float* startptr = glm::value_ptr(startPoint);
+
+        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const float* halfExtents = glm::value_ptr(extents);
+
+        dtPolyRef startRef, rndRef;
+
+        float startPt[3];
+        float rndPt[3];
+
+        dtQueryFilter filter;
+        filter.setIncludeFlags(0xffff);
+        filter.setExcludeFlags(0);
+
+        dtPolyRef path[MAX_POLYS];
+        dtStatus status = 0;
+        int pathCount = 0;
+
+        float straightPath[MAX_POLYS * 3]{};
+        unsigned char strPathFlags[MAX_POLYS];
+        dtPolyRef strPathPolys[MAX_POLYS];
+
+        int strPathCount = 0;
+
+        status = m_dtNavMeshQuery->findNearestPoly(startptr, halfExtents, &filter, &startRef, startPt);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid start poly! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        status = m_dtNavMeshQuery->findRandomPointAroundCircle(startRef, startptr, 20.0f, &filter, frand, &rndRef, rndPt);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find random point around circle! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        status = m_dtNavMeshQuery->findPath(startRef, rndRef, startPt, rndPt, &filter, path, &pathCount, MAX_POLYS);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid path! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        if (pathCount > 0)
+        {
+            status = m_dtNavMeshQuery->findStraightPath(startPt, rndPt, path, pathCount, straightPath, strPathFlags, strPathPolys, &strPathCount, MAX_POLYS);
+            if (dtStatusFailed(status))
+            {
+                std::cout << "Could not find valid straight path! " << "Status: " << status << std::endl;
+                return 0;
+            }
+        }
+
+        for (int i = 0; i < MAX_POLYS * 3; ++i)
+        {
+            strPath[i] = straightPath[i];
+        }
+        return strPathCount;        
+    }
 
     uint32_t detour::find_path(const glm::vec3& startPoint, const glm::vec3& endPoint, float* strPath)
     {
