@@ -14,7 +14,7 @@
 #include "DetourNavMesh.h"
 #include "DetourNavMeshQuery.h"
 
-#define MAX_POLYS 256
+#define MAX_POLYS 16
 
 namespace eqoa
 {
