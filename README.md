@@ -1,6 +1,6 @@
 # DetourWrapper
 
-DetourWrapper is a C++/CLI project that provides a managed C++ wrapper for the C++ Detour library. This wrapper allows you to use Detour functions in your EQOA server project, which is written in C#. By bridging the gap between C++ and C#, you can achieve seamless code integration for your EQOA server application.
+DetourWrapper is a C++/CLI project that provides a managed C++ wrapper for the C++ Detour library. This wrapper allows you to use Detour functions in your server project, which is written in C#. By bridging the gap between C++ and C#, you can achieve seamless code integration for your server application.
 
 ## Table of Contents
 
