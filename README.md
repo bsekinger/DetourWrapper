@@ -32,6 +32,7 @@ To use DetourWrapper in your EQOA server project, follow these steps:
 	https://github.com/bsekinger/DetourWrapperTest.git
 
 ## contributing
+std::rnd
 
 ## License
 DetourWrapper is licensed under the MIT License.
