@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <fstream>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
