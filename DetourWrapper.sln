@@ -5,6 +5,12 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DetourWrapper", "DetourWrapper\DetourWrapper.vcxproj", "{A7F34834-C9DB-450C-9CCC-3214AE6CD8D9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4359F89E-00E0-45E7-8199-01E01DFBEB30}"
+	ProjectSection(SolutionItems) = preProject
+		License.md = License.md
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
