@@ -2,9 +2,6 @@
 CC = g++
 CFLAGS = -Wall -g -O2 -I$(SRC_DIR1) -I$(INC_DIR)
 
-# Linker settings - including OpenGL libraries
-LDFLAGS = -lGL -lGLU  # Add additional libraries like -lglut if needed
-
 # Output binary
 TARGET = DetourWrapper
 
