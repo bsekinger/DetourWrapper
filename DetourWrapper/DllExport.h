@@ -2,14 +2,15 @@
 #ifndef DLLEXPORT_H_INCLUDED
 #define DLLEXPORT_H_INCLUDED
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1921)
-#pragma once
-#endif
-
 #include "Detour.h"
 #include <cstdint>
 
+// Cross-platform support for exporting functions
+#ifdef _WIN32
 #define DETOUR_API __declspec(dllexport)
+#else
+#define DETOUR_API __attribute__((visibility("default")))
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -23,4 +24,4 @@ extern "C"
 }
 #endif
 
-#endif // EXODUS_DLLEXPORT_H_INCLUDED
+#endif // DLLEXPORT_H_INCLUDED

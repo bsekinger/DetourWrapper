@@ -152,6 +152,11 @@
     <ClCompile Include="Detour\Source\DetourNode.cpp" />
     <ClCompile Include="DllExport.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="makeFile">
+      <FileType>Makefile</FileType>
+    </Text>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
