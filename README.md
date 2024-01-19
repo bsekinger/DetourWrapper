@@ -22,13 +22,16 @@ Detour is a powerful library for hooking and redirecting function calls in nativ
 
 ## Getting Started
 
-To use DetourWrapper in your EQOA server project, follow these steps:
+To use DetourWrapper in your server project, follow these steps:
 
 1. Clone this repository to your local machine:
    https://github.com/bsekinger/DetourWrapper.git
 2. This project uses OpenGL Mathematics (GLM). Clone it to your local machine:
 	https://github.com/g-truc/glm.git
-3. Clone the example application which provides sample code snippets demonstrating how to use DetourWrapper in your EQOA server application:
+	or on Linux install it with sudo apt install libglm-dev
+3. On Windows build to produce DetourWrapper.dll
+	or if using linux run the included Makefile to produce "libDetourWapper.so"
+4. Clone the example application which provides sample code snippets demonstrating how to use DetourWrapper in your server application:
 	https://github.com/bsekinger/DetourWrapperTest.git
 
 ## contributing

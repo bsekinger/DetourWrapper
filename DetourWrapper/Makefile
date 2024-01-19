@@ -1,9 +1,9 @@
 # Compiler settings
 CC = g++
-CFLAGS = -Wall -g -O2 -I$(SRC_DIR1) -I$(INC_DIR)
+CFLAGS = -Wall -g -O2 -fPIC -I$(SRC_DIR1) -I$(INC_DIR)
 
 # Output binary
-TARGET = DetourWrapper
+TARGET = libDetourWrapper.so
 
 # Directory of the current Makefile
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -24,12 +24,12 @@ OBJS = $(SRCS:.cpp=.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-    $(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) -shared $(CFLAGS) -o $(TARGET) $(OBJS)
 
 # Generic rule for compiling .cpp to .o
 %.o: %.cpp
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean target
 clean:
-    rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS)
