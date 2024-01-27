@@ -32,9 +32,14 @@ DETOUR_API uint32_t random_roam(void* ptr, void* start, float* strPath)
     return detour->random_roam(*static_cast<glm::vec3*>(start), strPath);
 }
 
-
 DETOUR_API uint32_t check_los(void* ptr, void* start, void* target, float* range)
 {
     eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
     return detour->check_los(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(target), range);
+}
+
+DETOUR_API uint32_t random_point(void* ptr, void* centerPoint, float radius, float* rndPoint)
+{
+    eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
+    return detour->random_point(*static_cast<const glm::vec3*>(centerPoint), radius, rndPoint);
 }

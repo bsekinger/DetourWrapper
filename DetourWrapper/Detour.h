@@ -25,6 +25,7 @@ namespace eqoa
         ~detour();
         uint32_t load(const std::string& filePath);
         uint32_t find_path(const glm::vec3& startPoint, const glm::vec3& endPoint, float* strPath);
+        uint32_t random_point(const glm::vec3& centerPoint, float radius, float* rndPoint);
         uint32_t random_roam(const glm::vec3& startPoint, float* strPath);
         uint32_t check_los(const glm::vec3& start, const glm::vec3& target, float* range);
     private:

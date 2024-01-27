@@ -141,6 +141,40 @@ namespace eqoa
         return 0;
      }
 
+    uint32_t detour::random_point(const glm::vec3& centerPoint, float radius, float* rndPoint)
+    {
+        m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
+
+        const float* centerPtr = glm::value_ptr(centerPoint);
+
+        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const float* halfExtents = glm::value_ptr(extents);
+
+        dtPolyRef centerRef, randomRef;
+
+        float nearestPt[3];
+
+        dtQueryFilter filter;
+        filter.setIncludeFlags(0xffff);
+        filter.setExcludeFlags(0);
+
+        dtStatus status = m_dtNavMeshQuery->findNearestPoly(centerPtr, halfExtents, &filter, &centerRef, nearestPt);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find valid center poly! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        status = m_dtNavMeshQuery->findRandomPointAroundCircle(centerRef, centerPtr, radius, &filter, frand, &randomRef, rndPoint);
+        if (dtStatusFailed(status))
+        {
+            std::cout << "Could not find random point within radius! " << "Status: " << status << std::endl;
+            return 0;
+        }
+
+        return 1;
+    }
+
     uint32_t detour::random_roam(const glm::vec3& startPoint, float* strPath)
     {
         m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);

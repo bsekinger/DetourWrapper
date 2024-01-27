@@ -11,10 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release.
 
-### Changed
+## [1.1.0] - 2024-01-27
 
-- Some changes made.
+### Added
 
-### Fixed
-
-- Some fixes made.
+- Added access to a new random_point function through the API.
