@@ -24,12 +24,12 @@ OBJS = $(SRCS:.cpp=.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-    $(CC) -shared $(CFLAGS) -o $(TARGET) $(OBJS)
+    $(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
 # Generic rule for compiling .cpp to .o
 %.o: %.cpp
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean target
 clean:
-    rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS)

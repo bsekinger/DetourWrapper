@@ -1,6 +1,7 @@
 #include <glm/glm.hpp>
-#include "detour.h"
-#include "dllexport.h"
+#include "Detour.h"
+#include "DllExport.h"
+
 
 DETOUR_API void* allocDetour()
 {
