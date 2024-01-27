@@ -24,7 +24,7 @@ OBJS = $(SRCS:.cpp=.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-    $(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) -shared $(CFLAGS) -o $(TARGET) $(OBJS)
 
 # Generic rule for compiling .cpp to .o
 %.o: %.cpp
