@@ -27,10 +27,10 @@ DETOUR_API uint32_t find_path(void* ptr, void* start, void* end, float* strPath)
     return detour->find_path(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(end), strPath);
 }
 
-DETOUR_API uint32_t random_roam(void* ptr, void* start, float* strPath)
+DETOUR_API uint32_t find_smoothPath(void* ptr, void* start, void* end, float* smoothPath)
 {
     eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
-    return detour->random_roam(*static_cast<glm::vec3*>(start), strPath);
+    return detour->find_smoothPath(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(end), smoothPath);
 }
 
 DETOUR_API uint32_t check_los(void* ptr, void* start, void* target, float* range)
