@@ -466,7 +466,7 @@ namespace eqoa
         m_dtNavMeshQuery->closestPointOnPoly(startRef, nearestStartPos, iterPos, nullptr);
         m_dtNavMeshQuery->closestPointOnPoly(path[pathCount - 1], nearestEndPos, targetPos, nullptr);
 
-        const float STEP_SIZE = 1.0f;
+        const float STEP_SIZE = 2.0f;
         const float SLOP = 0.01f;
 
         int smoothPathCount = 0;
