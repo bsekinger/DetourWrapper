@@ -86,7 +86,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\bseki\source\repos\glm;$(ProjectDir)Detour/Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\bseki\source\repos\glm;$(ProjectDir)Detour\Include</AdditionalIncludeDirectories>
       <AdditionalOptions>/Gd %(AdditionalOptions)</AdditionalOptions>
       <CompileAsManaged>false</CompileAsManaged>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>

@@ -1,3 +1,6 @@
+﻿#define _CRT_SECURE_NO_WARNINGS   // place before any #include <cstdio>
+#include <cstdio>
+
 #include "Detour.h"
 #include "DetourNavMesh.h"
 #include "DetourAlloc.h"
@@ -7,6 +10,7 @@
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 #include <float.h>
+#include <random>
 
 
 namespace eqoa
@@ -33,6 +37,15 @@ namespace eqoa
     {
         //	return ((float)(rand() & 0xffff)/(float)0xffff);
         return (float)rand() / (float)RAND_MAX;
+    }
+
+    // Thread-local engine avoids contention if this is called from multiple threads.
+    static thread_local std::mt19937 rng(std::random_device{}());
+    static thread_local std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    static float BetterFrand()
+    {
+        return dist(rng);
     }
 
     dtNavMesh* LoadMeshFile(const std::string& filePath)
@@ -314,13 +327,34 @@ namespace eqoa
         return true;
     }
 
-    uint32_t detour::random_point(const glm::vec3& centerPoint, float radius, float* rndPoint)
+    static void dumpDetourTile(const dtMeshTile* tile)
+    {
+        if (!tile || !tile->header) return;
+
+        puts("---- tile dump ----");
+        const dtPoly* polys = tile->polys;
+        const int     pcnt = tile->header->polyCount;
+
+        for (int p = 0; p < pcnt; ++p)
+        {
+            const dtPoly& poly = polys[p];
+            //if (poly.type == DT_POLYTYPE_OFFMESH_CONNECTION) continue;
+
+            unsigned char  area = poly.getArea();  // or poly.area on older forks
+            unsigned short flags = poly.flags;
+
+            printf("poly[%3d] area=%3u  flags=0x%04X\n",
+                p, static_cast<unsigned>(area), static_cast<unsigned>(flags));
+        }
+    }
+
+    uint32_t detour::random_point(const glm::vec3& centerPoint, float radius, uint16_t includeFlags, uint16_t excludeFlags, float* rndPoint)
     {
         m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
 
         const float* centerPtr = glm::value_ptr(centerPoint);
 
-        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const glm::vec3 extents(2.0f, 50.0f, 2.0f);
         const float* halfExtents = glm::value_ptr(extents);
 
         dtPolyRef centerRef, randomRef;
@@ -328,8 +362,13 @@ namespace eqoa
         float nearestPt[3];
 
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xffff);
-        filter.setExcludeFlags(0);
+        filter.setIncludeFlags(includeFlags);
+        filter.setExcludeFlags(excludeFlags);
+
+        filter.setAreaCost(SAMPLE_POLYAREA_GROUND, 1.0f);
+        filter.setAreaCost(SAMPLE_POLYAREA_WATER, 1.5f);
+        filter.setAreaCost(SAMPLE_POLYAREA_MUD, 3.0f);
+        filter.setAreaCost(SAMPLE_POLYAREA_LAVA, 100.0f);  // Basically avoid
 
         dtStatus status = m_dtNavMeshQuery->findNearestPoly(centerPtr, halfExtents, &filter, &centerRef, nearestPt);
         if (dtStatusFailed(status))
@@ -338,7 +377,7 @@ namespace eqoa
             return 0;
         }
 
-        status = m_dtNavMeshQuery->findRandomPointAroundCircle(centerRef, centerPtr, radius, &filter, frand, &randomRef, rndPoint);
+        status = m_dtNavMeshQuery->findRandomPointAroundCircle(centerRef, centerPtr, radius, &filter, BetterFrand, &randomRef, rndPoint);
         if (dtStatusFailed(status))
         {
             // std::cout << "Could not find random point within radius! " << "Status: " << status << std::endl;
@@ -348,14 +387,14 @@ namespace eqoa
         return 1;
     }
  
-    uint32_t detour::find_path(const glm::vec3& startPoint, const glm::vec3& endPoint, float* strPath)
+    uint32_t detour::find_path(const glm::vec3& startPoint, const glm::vec3& endPoint, uint16_t includeFlags, uint16_t excludeFlags, float* strPath)
     {
          m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
 
         const float* startptr = glm::value_ptr(startPoint);
         const float* endptr = glm::value_ptr(endPoint);
         
-        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const glm::vec3 extents(2.0f, 50.0f, 2.0f);
         const float* halfExtents = glm::value_ptr(extents);
 
         dtPolyRef startRef, endRef;
@@ -364,8 +403,13 @@ namespace eqoa
         float endPt[3];
         
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xffff);
-        filter.setExcludeFlags(0);
+        filter.setIncludeFlags(includeFlags);
+        filter.setExcludeFlags(excludeFlags);
+
+        filter.setAreaCost(SAMPLE_POLYAREA_GROUND, 1.0f);
+        filter.setAreaCost(SAMPLE_POLYAREA_WATER, 1.5f);
+        filter.setAreaCost(SAMPLE_POLYAREA_MUD, 3.0f);
+        filter.setAreaCost(SAMPLE_POLYAREA_LAVA, 100.0f);  // Basically avoid
 
         dtPolyRef path[MAX_POLYS];
         dtStatus status = 0;
@@ -415,14 +459,14 @@ namespace eqoa
         return strPathCount;
     }
 
-    uint32_t detour::find_smoothPath(const glm::vec3& startPoint, const glm::vec3& endPoint, float* smoothPath)
+    uint32_t detour::find_smoothPath(const glm::vec3& startPoint, const glm::vec3& endPoint, uint16_t includeFlags, uint16_t excludeFlags, float* smoothPath)
     {
         m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
 
         const float* startPtr = glm::value_ptr(startPoint);
         const float* endPtr = glm::value_ptr(endPoint);
 
-        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const glm::vec3 extents(2.0f, 50.0f, 2.0f);
         const float* halfExtents = glm::value_ptr(extents);
 
         dtPolyRef startRef, endRef;
@@ -431,8 +475,13 @@ namespace eqoa
         float nearestEndPos[3];
 
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xffff);
-        filter.setExcludeFlags(0);
+        filter.setIncludeFlags(includeFlags);
+        filter.setExcludeFlags(excludeFlags);
+
+        filter.setAreaCost(SAMPLE_POLYAREA_GROUND, 1.0f);
+        filter.setAreaCost(SAMPLE_POLYAREA_WATER, 1.5f);
+        filter.setAreaCost(SAMPLE_POLYAREA_MUD, 3.0f);
+        filter.setAreaCost(SAMPLE_POLYAREA_LAVA, 100.0f);  // Basically avoid
 
         dtPolyRef path[MAX_POLYS];
         dtStatus status = 0;
@@ -529,7 +578,7 @@ namespace eqoa
         const float* startptr = glm::value_ptr(start);
         const float* targetptr = glm::value_ptr(target);
 
-        glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        const glm::vec3 extents(2.0f, 4.0f, 2.0f);
         const float* halfExtents = glm::value_ptr(extents);
 
         float startPt[3]{ start.x, start.y, start.z };
@@ -579,6 +628,64 @@ namespace eqoa
 
         //std::cout << "LoS Failed!" << std::endl;
         return 2;
+    }    
+
+    uint32_t eqoa::detour::getPolyFlags(const glm::vec3& pos, uint16_t includeFlags, uint16_t excludeFlags)
+    {        
+        m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
+        
+        const glm::vec3 extents(0.1f,30.0f, 0.1f);
+        const float* halfExtents = glm::value_ptr(extents);
+        
+        dtQueryFilter filter;
+        filter.setIncludeFlags(includeFlags);
+        filter.setExcludeFlags(excludeFlags);
+        
+        dtPolyRef ref = 0;
+        float nearestPt[3];
+        dtStatus status = m_dtNavMeshQuery->findNearestPoly(glm::value_ptr(pos), halfExtents, &filter, &ref, nearestPt);
+
+        if (dtStatusFailed(status) || !ref)
+            return UINT32_MAX;
+
+        //// ** DEBUG: dump the entire tile that this poly belongs to DELETE AFTER TESTING! **
+        //{
+        //    const dtMeshTile* tile = nullptr;
+        //    const dtPoly* poly = nullptr;
+        //    if (m_dtNavMesh->getTileAndPolyByRef(ref, &tile, &poly) == DT_SUCCESS)
+        //    {
+        //        if (poly)
+        //        {
+        //            printf("----- Dumping poly ref 0x%016llX -----\n", (unsigned long long)ref);
+        //            printf(" flags = 0x%02X, verts = %d\n",
+        //                poly->flags,
+        //                poly->vertCount);
+        //            for (int i = 0; i < poly->vertCount; ++i)
+        //            {
+        //                // each poly->verts[i] is an index into tile->verts (flat float array)
+        //                unsigned int vi = poly->verts[i];
+        //                const float* v = &tile->verts[3 * vi];
+        //                printf("   vert[%d] (idx=%d):  %.3f, %.3f, %.3f\n",
+        //                    i, vi, v[0], v[1], v[2]);
+        //            }
+        //            puts("--------------------------------------");
+        //        }
+        //        else
+        //        {
+        //            puts("Failed to locate poly pointer");
+        //        }
+        //    }
+        //    else
+        //    { 
+        //        puts("Failed to locate tile from ref");
+        //    }
+        //}
+
+        unsigned short flags = 0;
+        m_dtNavMesh->getPolyFlags(ref, &flags);
+
+        // ► Return the full flag bits now:
+        return flags;
     }
 
      void detour::unload()
