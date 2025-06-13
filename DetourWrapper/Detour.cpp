@@ -375,7 +375,7 @@ namespace eqoa
         {
             // std::cout << "Could not find valid center poly! " << "Status: " << status << std::endl;
             return 0;
-        }
+        }        
 
         status = m_dtNavMeshQuery->findRandomPointAroundCircle(centerRef, centerPtr, radius, &filter, BetterFrand, &randomRef, rndPoint);
         if (dtStatusFailed(status))

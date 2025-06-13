@@ -39,10 +39,10 @@ DETOUR_API uint32_t check_los(void* ptr, void* start, void* target, float* range
     return detour->check_los(*static_cast<glm::vec3*>(start), *static_cast<glm::vec3*>(target), range);
 }
 
-DETOUR_API uint32_t random_point(void* ptr, void* centerPoint, float radius, uint16_t includeFlags, uint16_t excludeFlags, float* rndPoint)
+DETOUR_API uint32_t random_point(void* ptr, void* centerPoint, int radius, uint16_t includeFlags, uint16_t excludeFlags, float* rndPoint)
 {
     eqoa::detour* detour = static_cast<eqoa::detour*>(ptr);
-    return detour->random_point(*static_cast<const glm::vec3*>(centerPoint), radius, includeFlags, excludeFlags, rndPoint);
+    return detour->random_point(*static_cast<const glm::vec3*>(centerPoint), static_cast<float>(radius), includeFlags, excludeFlags, rndPoint);
 }
 
 DETOUR_API uint32_t getPolyFlags(void* ptr, void* posIn, uint16_t includeFlags, uint16_t excludeFlags)
