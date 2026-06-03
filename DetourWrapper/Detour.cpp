@@ -11,6 +11,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <float.h>
 #include <random>
+#include <cfloat>  // FLT_MAX
+#include <cmath>   // fabsf
 
 
 namespace eqoa
@@ -369,6 +371,7 @@ namespace eqoa
         filter.setAreaCost(SAMPLE_POLYAREA_WATER, 1.5f);
         filter.setAreaCost(SAMPLE_POLYAREA_MUD, 3.0f);
         filter.setAreaCost(SAMPLE_POLYAREA_LAVA, 100.0f);  // Basically avoid
+        filter.setAreaCost(SAMPLE_POLYAREA_SLIME, 3.0f);   // Swim: slime (mud-like cost)
 
         dtStatus status = m_dtNavMeshQuery->findNearestPoly(centerPtr, halfExtents, &filter, &centerRef, nearestPt);
         if (dtStatusFailed(status))
@@ -410,6 +413,7 @@ namespace eqoa
         filter.setAreaCost(SAMPLE_POLYAREA_WATER, 1.5f);
         filter.setAreaCost(SAMPLE_POLYAREA_MUD, 3.0f);
         filter.setAreaCost(SAMPLE_POLYAREA_LAVA, 100.0f);  // Basically avoid
+        filter.setAreaCost(SAMPLE_POLYAREA_SLIME, 3.0f);   // Swim: slime (mud-like cost)
 
         dtPolyRef path[MAX_POLYS];
         dtStatus status = 0;
@@ -482,6 +486,7 @@ namespace eqoa
         filter.setAreaCost(SAMPLE_POLYAREA_WATER, 1.5f);
         filter.setAreaCost(SAMPLE_POLYAREA_MUD, 3.0f);
         filter.setAreaCost(SAMPLE_POLYAREA_LAVA, 100.0f);  // Basically avoid
+        filter.setAreaCost(SAMPLE_POLYAREA_SLIME, 3.0f);   // Swim: slime (mud-like cost)
 
         dtPolyRef path[MAX_POLYS];
         dtStatus status = 0;
@@ -571,32 +576,45 @@ namespace eqoa
     }
 
 
-    uint32_t detour::check_los(const glm::vec3& start, const glm::vec3& target, float* range)
+    uint32_t detour::check_los(const glm::vec3& start, const glm::vec3& target, float* range, uint16_t includeFlags, uint16_t excludeFlags)
     {
         m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
         float distance = glm::distance(start, target);
-        const float* startptr = glm::value_ptr(start);
-        const float* targetptr = glm::value_ptr(target);
 
-        const glm::vec3 extents(2.0f, 4.0f, 2.0f);
+        // Determine if this is a liquid search (player at surface, polys on river bed)
+        const uint16_t liquidMask = SAMPLE_POLYFLAGS_WATER | SAMPLE_POLYFLAGS_MUD | SAMPLE_POLYFLAGS_LAVA | SAMPLE_POLYFLAGS_SLIME;
+        bool isLiquidCheck = (includeFlags & liquidMask) != 0
+                          && (includeFlags & SAMPLE_POLYFLAGS_WALK) == 0;
+
+        // Liquid: large Y extent to reach river bed from surface. Walkable: tight to prevent cross-floor.
+        const glm::vec3 extents = isLiquidCheck
+            ? glm::vec3(2.0f, 30.0f, 2.0f)
+            : glm::vec3(2.0f, 1.0f, 2.0f);
         const float* halfExtents = glm::value_ptr(extents);
+
+        // Reject if snapping “teleports” to another level.
+        // Liquid: relax (player at surface, poly at bed). Walkable: keep tight.
+        const float kMaxSnapDeltaY  = isLiquidCheck ? 30.0f : 2.0f;
+        const float kMaxActorDeltaY = isLiquidCheck ? 30.0f : 10.0f;
 
         float startPt[3]{ start.x, start.y, start.z };
         float targetPt[3]{ target.x, target.y, target.z };
 
         dtStatus status = 0;
-        dtPolyRef startRef;
+        dtPolyRef startRef = 0;
+        dtPolyRef endRef = 0;
+
+        float startOnMesh[3] = { 0,0,0 };
+        float endOnMesh[3] = { 0,0,0 };
 
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xffff);
-        filter.setExcludeFlags(0);
+        filter.setIncludeFlags(includeFlags);
+        filter.setExcludeFlags(excludeFlags);
 
         dtRaycastHit hit;
         dtPolyRef prevRef = 0;
         const unsigned int options = 1;
-
-        float t;
-        float hitNormal;
+        
         dtPolyRef path;
         int pathCount;
         const int maxPath = 256;
@@ -607,14 +625,37 @@ namespace eqoa
             return 1;
         }
 
-        status = m_dtNavMeshQuery->findNearestPoly(startptr, halfExtents, &filter, &startRef, startPt);
-        if (dtStatusFailed(status))
-        {
-            //std::cout << "Could not find valid start poly! " << "Status: " << status << std::endl;
+        // Snap Start
+        status = m_dtNavMeshQuery->findNearestPoly(startPt, halfExtents, &filter, &startRef, startOnMesh);
+        if (dtStatusFailed(status) || !startRef)
+        {            
             return 0;
         }
 
-        status = m_dtNavMeshQuery->raycast(startRef, startPt, targetPt, &filter, &t, &hitNormal, &path, &pathCount, maxPath);
+        // Snap END
+        status = m_dtNavMeshQuery->findNearestPoly(targetPt, halfExtents, &filter, &endRef, endOnMesh);
+        if (dtStatusFailed(status) || !endRef)
+            return 0;
+
+        // Sanity checks: prevent cross-floor snapping
+        if (fabsf(startOnMesh[1] - start.y) > kMaxSnapDeltaY)
+            return 2;
+
+        if (fabsf(endOnMesh[1] - target.y) > kMaxSnapDeltaY)
+            return 2;
+
+        if (fabsf(start.y - target.y) > kMaxActorDeltaY)
+            return 2;
+
+        // Raycast (2D end-Y ignored per Detour docs)
+        float t = 0.0f;
+        float hitNormal[3] = { 0,0,0 };
+
+        constexpr int kMaxRayPath = 256;
+        dtPolyRef rayPath[kMaxRayPath];
+        int rayPathCount = 0;
+
+        status = m_dtNavMeshQuery->raycast(startRef, startOnMesh, endOnMesh, &filter, &t, hitNormal, rayPath, &rayPathCount, kMaxRayPath);
         if (dtStatusFailed(status))
         {
             return 0;
@@ -622,7 +663,15 @@ namespace eqoa
 
         if (t >= 3e+38)
         {
-            //std::cout << "LoS Success!" << std::endl;
+            if (rayPathCount <= 0)
+                return 2;
+
+            // Critical stacked-floor fix:
+            // If we "reached end XZ" on a different surface than the target’s snapped poly,
+            // it's the balcony/ceiling false positive. Treat as blocked.
+            if (rayPathCount > 0 && rayPath[rayPathCount - 1] != endRef)
+                return 2;
+
             return 5;
         }
 
@@ -634,7 +683,7 @@ namespace eqoa
     {        
         m_dtNavMeshQuery->init(m_dtNavMesh.get(), 65535);
         
-        const glm::vec3 extents(0.1f,30.0f, 0.1f);
+        const glm::vec3 extents(3.0f,30.0f, 3.f);
         const float* halfExtents = glm::value_ptr(extents);
         
         dtQueryFilter filter;
@@ -646,40 +695,7 @@ namespace eqoa
         dtStatus status = m_dtNavMeshQuery->findNearestPoly(glm::value_ptr(pos), halfExtents, &filter, &ref, nearestPt);
 
         if (dtStatusFailed(status) || !ref)
-            return UINT32_MAX;
-
-        //// ** DEBUG: dump the entire tile that this poly belongs to DELETE AFTER TESTING! **
-        //{
-        //    const dtMeshTile* tile = nullptr;
-        //    const dtPoly* poly = nullptr;
-        //    if (m_dtNavMesh->getTileAndPolyByRef(ref, &tile, &poly) == DT_SUCCESS)
-        //    {
-        //        if (poly)
-        //        {
-        //            printf("----- Dumping poly ref 0x%016llX -----\n", (unsigned long long)ref);
-        //            printf(" flags = 0x%02X, verts = %d\n",
-        //                poly->flags,
-        //                poly->vertCount);
-        //            for (int i = 0; i < poly->vertCount; ++i)
-        //            {
-        //                // each poly->verts[i] is an index into tile->verts (flat float array)
-        //                unsigned int vi = poly->verts[i];
-        //                const float* v = &tile->verts[3 * vi];
-        //                printf("   vert[%d] (idx=%d):  %.3f, %.3f, %.3f\n",
-        //                    i, vi, v[0], v[1], v[2]);
-        //            }
-        //            puts("--------------------------------------");
-        //        }
-        //        else
-        //        {
-        //            puts("Failed to locate poly pointer");
-        //        }
-        //    }
-        //    else
-        //    { 
-        //        puts("Failed to locate tile from ref");
-        //    }
-        //}
+            return UINT32_MAX;        
 
         unsigned short flags = 0;
         m_dtNavMesh->getPolyFlags(ref, &flags);

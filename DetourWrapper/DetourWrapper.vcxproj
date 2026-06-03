@@ -80,7 +80,7 @@
     <LibraryPath>$(VCPKG_ROOT)\installed\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ManagedAssembly>true</ManagedAssembly>
+    <ManagedAssembly>false</ManagedAssembly>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -121,7 +121,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\bseki\source\repos\glm;$(ProjectDir)Detour/Include</AdditionalIncludeDirectories>
       <AdditionalOptions>/Gd %(AdditionalOptions)</AdditionalOptions>
-      <CompileAsManaged>true</CompileAsManaged>
+      <CompileAsManaged>false</CompileAsManaged>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>

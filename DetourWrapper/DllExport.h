@@ -25,8 +25,7 @@ extern "C"
     DETOUR_API uint32_t random_point(void* ptr, void* centerPoint, int radius, uint16_t includeFlags, uint16_t excludeFlags, float* rndPoint);
     DETOUR_API uint32_t getPolyFlags(void* ptr, void* pos, uint16_t includeFlags, uint16_t excludeFlags);
 
-    // LOS does not take flags — unchanged
-    DETOUR_API uint32_t check_los(void* ptr, void* start, void* target, float* range);
+    DETOUR_API uint32_t check_los(void* ptr, void* start, void* target, float* range, uint16_t includeFlags, uint16_t excludeFlags);
 }
 #endif
 
