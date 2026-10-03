@@ -670,6 +670,34 @@ namespace
 			}
 		}
 
+		// The mesh builder can leave a poly with no boundary-flagged detail edge (pmin stays null and dtVlerp
+		// faults); clamp to the poly's own outline instead, which does not depend on detail edge flags.
+		if (!pmin && poly->vertCount > 0)
+		{
+			const float* va = &tile->verts[poly->verts[poly->vertCount - 1] * 3];
+			for (int i = 0; i < (int)poly->vertCount; ++i)
+			{
+				const float* vb = &tile->verts[poly->verts[i] * 3];
+				float t;
+				float d = dtDistancePtSegSqr2D(pos, va, vb, t);
+				if (d < dmin)
+				{
+					dmin = d;
+					tmin = t;
+					pmin = va;
+					pmax = vb;
+				}
+				va = vb;
+			}
+		}
+
+		// Degenerate input (a NaN position or an empty poly): never dereference null
+		if (!pmin)
+		{
+			dtVcopy(closest, pos);
+			return;
+		}
+
 		dtVlerp(closest, pmin, pmax, tmin);
 	}
 }
